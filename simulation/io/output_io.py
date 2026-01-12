@@ -49,6 +49,27 @@ def load_lognormal_params(path: str | pathlib.Path) -> dict:
     return payload
 
 
+def load_s_vector(path: str | pathlib.Path) -> np.ndarray:
+    path = pathlib.Path(path)
+    if path.suffix == ".npy":
+        data = np.load(path)
+    elif path.suffix == ".csv":
+        data = np.loadtxt(path, delimiter=",")
+    else:
+        data = np.loadtxt(path)
+
+    vec = np.asarray(data, dtype=float).squeeze()
+    if vec.ndim != 1:
+        raise ValueError(f"S vector must be 1D; got shape {vec.shape} from {path}")
+    if vec.size == 0:
+        raise ValueError(f"S vector is empty: {path}")
+    if not np.all(np.isfinite(vec)):
+        raise ValueError(f"S vector contains NaN/inf values: {path}")
+    if np.any(vec < 0):
+        raise ValueError(f"S vector must be non-negative: {path}")
+    return vec
+
+
 def build_measured_counts_matrix(
     rows: Sequence[Mapping[str, object]],
     gene_ids: Sequence[str],
@@ -65,6 +86,33 @@ def build_measured_counts_matrix(
     return measured
 
 
+def build_measured_counts_matrix_from_s(
+    rows: Sequence[Mapping[str, object]],
+    gene_ids: Sequence[str],
+    s_vector: Sequence[float],
+    seed: int,
+) -> np.ndarray:
+    counts = _counts_matrix_from_rows(rows, gene_ids)
+    s_vec = np.asarray(s_vector, dtype=float).squeeze()
+    if s_vec.ndim != 1:
+        raise ValueError("S vector must be 1D")
+    if s_vec.size == 0:
+        raise ValueError("S vector must be non-empty")
+    if not np.all(np.isfinite(s_vec)):
+        raise ValueError("S vector contains NaN/inf values")
+    if np.any(s_vec < 0):
+        raise ValueError("S vector must be non-negative")
+    rng = np.random.default_rng(seed)
+    if s_vec.size == counts.shape[0]:
+        s_vals = s_vec
+    else:
+        s_vals = rng.choice(s_vec, size=counts.shape[0], replace=True)
+    measured = np.zeros_like(counts, dtype=int)
+    for idx, row_counts in enumerate(counts):
+        measured[idx] = _snap_counts_from_total(row_counts, s_vals[idx], rng)
+    return measured
+
+
 def build_measured_snapshots(
     rows: Sequence[Mapping[str, object]],
     gene_ids: Sequence[str],
@@ -73,6 +121,16 @@ def build_measured_snapshots(
     seed: int,
 ) -> list[dict]:
     measured = build_measured_counts_matrix(rows, gene_ids, mu, sigma, seed)
+    return _merge_measured_rows(rows, gene_ids, measured)
+
+
+def build_measured_snapshots_from_s(
+    rows: Sequence[Mapping[str, object]],
+    gene_ids: Sequence[str],
+    s_vector: Sequence[float],
+    seed: int,
+) -> list[dict]:
+    measured = build_measured_counts_matrix_from_s(rows, gene_ids, s_vector, seed)
     return _merge_measured_rows(rows, gene_ids, measured)
 
 
@@ -170,6 +228,27 @@ def _snap_counts(
 
     s_draw = rng.lognormal(mean=mu, sigma=sigma)
     s_int = int(np.floor(s_draw + 0.5))
+    if s_int < 0:
+        s_int = 0
+    if s_int > total_int:
+        s_int = total_int
+    if s_int == 0:
+        return np.zeros_like(counts, dtype=int)
+
+    return _sample_without_replacement(counts, s_int, rng)
+
+
+def _snap_counts_from_total(
+    counts: np.ndarray,
+    s_value: float,
+    rng: np.random.Generator,
+) -> np.ndarray:
+    counts = counts.astype(int, copy=False)
+    total_int = int(np.sum(counts))
+    if total_int <= 0:
+        return np.zeros_like(counts, dtype=int)
+
+    s_int = int(np.floor(float(s_value) + 0.5))
     if s_int < 0:
         s_int = 0
     if s_int > total_int:

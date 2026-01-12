@@ -17,6 +17,7 @@ class SimulationConfig:
     nf_vector_path: str
     out_path: str
     measured_dist_path: str | None = None
+    measured_s_vector_path: str | None = None
     parsed_out_path: str | None = None
     sparse: bool = False
     initial_cell_count: int = 3

@@ -11,8 +11,10 @@ from simulation.io.gene_io import load_gene_table
 from simulation.io.nf_io import load_nf_vector
 from simulation.io.output_io import (
     build_measured_counts_matrix,
+    build_measured_counts_matrix_from_s,
     build_measured_snapshots_from_counts,
     load_lognormal_params,
+    load_s_vector,
     save_snapshot_csv,
     save_sparse_measured_matrix,
 )
@@ -69,8 +71,10 @@ def _resolve_sparse_path(out_path: pathlib.Path, parsed_out_path: str | pathlib.
 def main(argv: Sequence[str] | None = None) -> None:
     args = parse_args(argv)
     sim_config = load_simulation_config(args.config)
-    if sim_config.sparse and sim_config.measured_dist_path is None:
-        raise ValueError("sparse output requires measured_dist_path in the YAML config")
+    if sim_config.sparse and sim_config.measured_dist_path is None and sim_config.measured_s_vector_path is None:
+        raise ValueError("sparse output requires measured_dist_path or measured_s_vector_path in the YAML config")
+    if sim_config.measured_dist_path is not None and sim_config.measured_s_vector_path is not None:
+        raise ValueError("Provide only one of measured_dist_path or measured_s_vector_path")
 
     nf_vec = load_nf_vector(sim_config.nf_vector_path)
     validate_time_grid(sim_config, nf_vec)
@@ -81,7 +85,37 @@ def main(argv: Sequence[str] | None = None) -> None:
     snapshots = simulator.run()
     save_snapshot_csv(snapshots, sim_config.out_path)
 
-    if sim_config.measured_dist_path is not None:
+    if sim_config.measured_s_vector_path is not None:
+        s_vec = load_s_vector(sim_config.measured_s_vector_path)
+        gene_ids = [g.gene_id for g in genes]
+        measured_counts = build_measured_counts_matrix_from_s(
+            snapshots,
+            gene_ids,
+            s_vec,
+            seed=sim_config.random_seed,
+        )
+
+        parsed_rows = build_measured_snapshots_from_counts(
+            snapshots,
+            gene_ids,
+            measured_counts,
+        )
+        parsed_path = _resolve_parsed_csv_path(pathlib.Path(sim_config.out_path), sim_config.parsed_out_path)
+        save_snapshot_csv(parsed_rows, parsed_path)
+        print(f"Wrote parsed snapshots to {parsed_path}")
+
+        if sim_config.sparse:
+            sparse_path = _resolve_sparse_path(pathlib.Path(sim_config.out_path), sim_config.parsed_out_path)
+            cell_ids = [str(row["cell_id"]) for row in snapshots]
+            matrix_path, cells_path, genes_path = save_sparse_measured_matrix(
+                measured_counts,
+                cell_ids,
+                gene_ids,
+                sparse_path,
+            )
+            print(f"Wrote sparse measured matrix to {matrix_path}")
+            print(f"Wrote metadata to {cells_path} and {genes_path}")
+    elif sim_config.measured_dist_path is not None:
         params = load_lognormal_params(sim_config.measured_dist_path)
         mu = float(params["mu"])
         sigma = float(params["sigma"])

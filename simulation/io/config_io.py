@@ -44,6 +44,7 @@ def load_simulation_config(path: str | pathlib.Path) -> SimulationConfig:
     nf_vector_path = _resolve_path(str(_require(raw, "nf_vector_path")), base_dir)
     out_path = _resolve_path(str(_require(raw, "out_path")), base_dir)
     measured_dist_path = raw.get("measured_dist_path")
+    measured_s_vector_path = raw.get("measured_s_vector_path")
     parsed_out_path = raw.get("parsed_out_path")
     sparse = raw.get("sparse", False)
     if not isinstance(sparse, bool):
@@ -54,6 +55,9 @@ def load_simulation_config(path: str | pathlib.Path) -> SimulationConfig:
     if measured_dist_path is not None:
         measured_dist_path = _resolve_path(str(measured_dist_path), base_dir)
         _check_readable(measured_dist_path, "measured_dist_path")
+    if measured_s_vector_path is not None:
+        measured_s_vector_path = _resolve_path(str(measured_s_vector_path), base_dir)
+        _check_readable(measured_s_vector_path, "measured_s_vector_path")
     if parsed_out_path is not None:
         parsed_out_path = _resolve_path(str(parsed_out_path), base_dir)
 
@@ -75,6 +79,7 @@ def load_simulation_config(path: str | pathlib.Path) -> SimulationConfig:
         nf_vector_path=str(nf_vector_path),
         out_path=str(out_path),
         measured_dist_path=str(measured_dist_path) if measured_dist_path is not None else None,
+        measured_s_vector_path=str(measured_s_vector_path) if measured_s_vector_path is not None else None,
         parsed_out_path=str(parsed_out_path) if parsed_out_path is not None else None,
         sparse=bool(sparse),
         initial_cell_count=int(raw.get("initial_cell_count", 3)),

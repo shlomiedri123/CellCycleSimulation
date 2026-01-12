@@ -31,9 +31,11 @@ python3 run_simulation.py --config sim_config.yaml
 The YAML file defines input paths (`genes_path`, `nf_vector_path`) and output
 paths (`out_path`, optional `parsed_out_path`), along with all numeric
 simulation parameters. If `measured_dist_path` is provided, the simulator
-applies lognormal snapping. When `sparse: true`, it writes a CSR matrix (`.npz`)
-plus `.cells.txt` and `.genes.txt` metadata; otherwise it writes parsed snapshots
-CSV to `parsed_out_path` (or `<out_path>_parsed.csv` by default).
+applies lognormal snapping. If `measured_s_vector_path` is provided, the
+simulator uses the supplied S-vector for sampling (provide only one of the two).
+When `sparse: true`, it writes a CSR matrix (`.npz`) plus `.cells.txt` and
+`.genes.txt` metadata; otherwise it writes parsed snapshots CSV to
+`parsed_out_path` (or `<out_path>_parsed.csv` by default).
 
 ## Plot Age Distribution
 
@@ -55,7 +57,7 @@ python -m tools.plots nf --config sim_config.yaml --out out/nf_profile.png
 
 ## Nf(t) Vector Input
 
-Nf(t) is now provided as a vector file (e.g. `nf_vector.npy` or `.csv`). The
+Nf(t) is a vector file (e.g. `nf_vector.npy` or `.csv`). The
 vector length must equal `T_div / dt` (one cell-cycle), and the simulator
 indexes `Nf_vec[k % (T_div/dt)]` at time `t = k * dt` so Nf(t) repeats each cycle.
 
