@@ -6,5 +6,9 @@ build/
 .pytest_cache/
 .DS_Store
 simulation/analysis/
+tests/output/
+tests/sim_layout/snapshots.csv
 .DS_Store
 simulation/analysis/
+data/
+tests/
