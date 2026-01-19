@@ -1,7 +1,7 @@
 """Stochastic bacterial cell-cycle simulation package.
 
 Core simulation code lives in config/models/lineage/stochastic/kernels.
-The analysis and tools subpackages are utilities, not part of the simulator.
+Analysis utilities are intentionally excluded from the tracked simulation API.
 """
 
 __all__ = [
@@ -10,5 +10,4 @@ __all__ = [
     "stochastic",
     "lineage",
     "io",
-    "analysis",
 ]

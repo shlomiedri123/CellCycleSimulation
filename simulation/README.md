@@ -37,8 +37,3 @@ python run_simulation.py --config data/random_sim_config.yaml
 Ensure the time grid is consistent: `len(nf_vec) == T_div / dt` and
 `T_total / dt` is an integer.
 
-## Out of scope
-
-This directory does not include inference, fitting, or analysis workflows.
-Plotting and mean-profile utilities live outside the simulation core and
-should be treated as separate tools.

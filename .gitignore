@@ -5,3 +5,6 @@ build/
 *.so
 .pytest_cache/
 .DS_Store
+simulation/analysis/
+.DS_Store
+simulation/analysis/
