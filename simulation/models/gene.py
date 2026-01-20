@@ -7,7 +7,7 @@ plus replication timing along the chromosome.
 from __future__ import annotations
 
 from dataclasses import dataclass
-# Should we add i
+
 
 @dataclass(frozen=True)
 class Gene:
