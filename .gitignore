@@ -1,0 +1,79 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.eggs/
+dist/
+
+# Build artifacts
+build/
+*.so
+
+# Testing (keep locally, exclude from git)
+.pytest_cache/
+*/tests/
+conftest.py
+
+# IDE/Editor
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Claude Code
+.claude/
+
+# Temporary/local files
+xcrun_db
+out/
+
+# Local data directories
+data/
+/tools/
+/lineage/
+results/
+final_results/
+
+# Analysis scripts (keep locally, exclude from git)
+final_analysis.py
+run_real_data_analysis.py
+RealDataAnalysis/
+
+# Legacy/backup files
+*.zip
+report.txt
+
+# Local-only root samples (generated files)
+/sim_config.yaml
+/random_genes.csv
+/nf_vector.npy
+/S_params.json
+/snapshots.csv
+/snapshots_parsed.csv
+
+# Local-only module files to exclude
+Simulation/analysis.py
+Simulation/cli.py
+Simulation/examples/
+Simulation/kernels/
+
+BayesianInference/cli.py
+BayesianInference/validate.py
+BayesianInference/examples/
+
+MLComparison/tests/
+
+# Local-only example outputs in Simulation
+Simulation/examples/sim_layout/snapshots.csv
+Simulation/examples/sim_layout/snapshots_parsed.csv
+Simulation/examples/sim_layout/random_hidden_params.json
+Simulation/examples/sim_layout/random_sim_config.yaml
+
+# Local-only example outputs in BayesianInference
+BayesianInference/examples/*.csv
+BayesianInference/examples/*.json
+BayesianInference/examples/*.yaml
+!BayesianInference/examples/README.md
+!BayesianInference/examples/bayes_inference_config.yaml
